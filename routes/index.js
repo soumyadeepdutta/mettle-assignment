@@ -90,4 +90,25 @@ router.get("/remaining-cash", (req, res, next) => {
   });
 });
 
+router.put("/update-name", (req, res, next) => {
+  db.getConnection((err, connection) => {
+    if (err) throw err; // not connected!
+    // Use the connection
+    const sql = `UPDATE users SET name='${req.body.name}', updated_at=current_timestamp() WHERE id=${req.query.id}`;
+    // console.log(sql);
+    connection.query(sql, function (error, results) {
+      // When done with the connection, release it.
+      // console.log(`connected with ${connection.threadId}`);
+      connection.release();
+
+      // Handle error after the release.
+      if (error) throw error;
+
+      // Don't use the connection here, it has been returned to the pool.
+
+      res.send(results.message);
+    });
+  });
+});
+
 module.exports = router;
