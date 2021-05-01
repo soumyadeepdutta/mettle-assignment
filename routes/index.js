@@ -106,7 +106,30 @@ router.put("/update-name", (req, res, next) => {
 
       // Don't use the connection here, it has been returned to the pool.
 
-      res.send(results.message);
+      res.json({ message: "Customer name has been updated successfully" });
+    });
+  });
+});
+
+router.put("/update-amount", (req, res, next) => {
+  db.getConnection((err, connection) => {
+    if (err) throw err; // not connected!
+    // Use the connection
+    const sql = `UPDATE daily_revenues SET amount=${req.body.amount} WHERE reference_no=${req.query.reference_no}`;
+    // console.log(sql);
+    connection.query(sql, function (error, results) {
+      // When done with the connection, release it.
+      // console.log(`connected with ${connection.threadId}`);
+      connection.release();
+
+      // Handle error after the release.
+      if (error) throw error;
+
+      // Don't use the connection here, it has been returned to the pool.
+
+      res.json({
+        message: `Amount has been updated successfully for the reference no : ${req.query.reference_no} `,
+      });
     });
   });
 });
