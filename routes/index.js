@@ -32,4 +32,27 @@ router.get("/cash-receipts", (req, res, next) => {
   });
 });
 
+router.get("/expenditure", (req, res, next) => {
+  db.getConnection((err, connection) => {
+    if (err) throw err; // not connected!
+    // Use the connection
+    const sql = `SELECT *, expenditure_categories.category_name FROM daily_expenditures INNER JOIN expenditure_categories ON daily_expenditures.organization_id=expenditure_categories.organization_id  WHERE daily_expenditures.user_id=${req.query.id}`;
+    // console.log(sql);
+    connection.query(sql, function (error, results) {
+      // When done with the connection, release it.
+      // console.log(`connected with ${connection.threadId}`);
+      connection.release();
+
+      // Handle error after the release.
+      if (error) throw error;
+
+      // Don't use the connection here, it has been returned to the pool.
+
+      const data = removeEmpty(results);
+
+      res.json({ data });
+    });
+  });
+});
+
 module.exports = router;
