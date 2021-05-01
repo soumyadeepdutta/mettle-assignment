@@ -55,4 +55,39 @@ router.get("/expenditure", (req, res, next) => {
   });
 });
 
+router.get("/remaining-cash", (req, res, next) => {
+  db.getConnection(async (err, connection) => {
+    if (err) throw err;
+    // const sql = `SELECT sum(amount) FROM cash_receipts WHERE user_id=${req.query.id}`;
+    connection.query(
+      `SELECT sum(amount) FROM cash_receipts WHERE user_id=${req.query.id}`,
+      (error, cash) => {
+        if (error) throw error;
+        connection.query(
+          `SELECT sum(amount) FROM daily_expenditures WHERE user_id=${req.query.id}`,
+          (error, expenditure) => {
+            if (error) throw error;
+            connection.query(
+              `SELECT sum(amount) FROM daily_revenues WHERE user_id=${req.query.id}`,
+              (error, revenue) => {
+                if (error) throw error;
+                connection.release();
+                cash = cash[0]["sum(amount)"];
+                revenue = revenue[0]["sum(amount)"];
+                expenditure = expenditure[0]["sum(amount)"];
+                return res.json({
+                  cash,
+                  revenue,
+                  expenditure,
+                  remaining_cash: cash + revenue - expenditure,
+                });
+              }
+            );
+          }
+        );
+      }
+    );
+  });
+});
+
 module.exports = router;
